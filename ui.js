@@ -129,21 +129,27 @@ const UI = (function() {
         }
 
         const accountSections = Object.entries(transactionsByAccount).map(([account, transactions]) => {
-            const transactionItems = transactions.map(transaction => `
-                <div class="transaction-item">
-                    <div class="transaction-header">
-                        <span class="transaction-description">${transaction.description}</span>
-                        <span class="transaction-amount">$${Math.abs(transaction.amount).toFixed(2)}</span>
+            const transactionItems = transactions.map(transaction => {
+                const date = new Date(transaction.date);
+                const formattedDate = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+                return `
+                    <div class="transaction-item">
+                        <div class="transaction-header">
+                            <span class="transaction-description">${transaction.description}</span>
+                            <span class="transaction-date">${formattedDate}</span>
+                            <span class="transaction-amount">$${Math.abs(transaction.amount).toFixed(2)}</span>
+                        </div>
+                        <div class="transaction-category">
+                            <select class="category-select" data-transaction-id="${transaction.id}">
+                                ${categories.map(cat => `
+                                    <option value="${cat}" ${transaction.category === cat ? 'selected' : ''}>${cat}</option>
+                                `).join('')}
+                            </select>
+                        </div>
                     </div>
-                    <div class="transaction-category">
-                        <select class="category-select" data-transaction-id="${transaction.id}">
-                            ${categories.map(cat => `
-                                <option value="${cat}" ${transaction.category === cat ? 'selected' : ''}>${cat}</option>
-                            `).join('')}
-                        </select>
-                    </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
 
             return `
                 <div class="account-section">
