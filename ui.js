@@ -6,12 +6,17 @@ const UI = (function() {
         const spentByCategory = State.calculateSpentByCategory(monthKey);
 
         const isPacingHigh = pacing.percentOfBudget > pacing.percentOfMonth + 10;
+        const isPacingLow = pacing.percentOfBudget < pacing.percentOfMonth - 10;
 
         let pacingMessage = 'On track';
+        let pacingClass = 'on-track';
+
         if (isPacingHigh) {
-            pacingMessage = 'Spending ahead of schedule';
-        } else if (pacing.percentOfBudget < pacing.percentOfMonth - 10) {
+            pacingMessage = 'Over budget';
+            pacingClass = 'over-budget';
+        } else if (isPacingLow) {
             pacingMessage = 'Under budget';
+            pacingClass = 'under-budget';
         }
 
         const categoryRows = Object.entries(spentByCategory)
@@ -42,11 +47,11 @@ const UI = (function() {
                             <span>${pacing.percentOfBudget.toFixed(1)}% ($${pacing.otherSpent.toFixed(2)} of $${pacing.otherBudget.toFixed(2)})</span>
                         </div>
                         <div class="bar-container">
-                            <div class="bar-fill ${isPacingHigh ? 'warning' : ''}" style="width: ${Math.min(pacing.percentOfBudget, 100)}%"></div>
+                            <div class="bar-fill" style="width: ${Math.min(pacing.percentOfBudget, 100)}%"></div>
                         </div>
                     </div>
                 </div>
-                <div class="pacing-summary">
+                <div class="pacing-summary ${pacingClass}">
                     ${pacingMessage}
                 </div>
             </div>
@@ -199,6 +204,7 @@ const UI = (function() {
             incomeInput.addEventListener('change', (e) => {
                 const budget = State.getBudget(monthKey);
                 budget.income = parseFloat(e.target.value) || 0;
+                API.saveData();
                 render();
             });
         }
@@ -210,6 +216,7 @@ const UI = (function() {
                 const category = e.target.dataset.category;
                 const amount = parseFloat(e.target.value) || 0;
                 State.addExpenseCategory(monthKey, category, amount);
+                API.saveData();
                 render();
             });
         });
@@ -221,6 +228,7 @@ const UI = (function() {
                 const categoryName = prompt('Enter category name:');
                 if (categoryName && categoryName.trim()) {
                     State.addExpenseCategory(monthKey, categoryName.trim(), 0);
+                    API.saveData();
                     render();
                 }
             });
@@ -237,6 +245,7 @@ const UI = (function() {
                 const transactionId = parseFloat(e.target.dataset.transactionId);
                 const newCategory = e.target.value;
                 State.updateTransaction(monthKey, transactionId, { category: newCategory });
+                API.saveData();
             });
         });
     }
